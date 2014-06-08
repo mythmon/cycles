@@ -31,4 +31,4 @@ gulp.task('deploy', ['build'], function() {
 });
 
 // Default Task
-gulp.task('default', ['buld']);
+gulp.task('default', ['build']);

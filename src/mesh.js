@@ -12,6 +12,17 @@ export class Vert {
     this.edges = edges;
     this.id = getId();
   }
+
+  // All vertices that are distance 1 from this vertex.
+  connectedVerts() {
+    var vs = [];
+    for (var e of this.edges) {
+      vs.push(e.vert1);
+      vs.push(e.vert2);
+    }
+    console.log(vs);
+    return vs.filter((v) => v.id !== this.id);
+  }
 }
 
 export class Edge {

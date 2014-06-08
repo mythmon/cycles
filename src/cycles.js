@@ -1,22 +1,6 @@
 import {Mesh} from "./mesh";
 
-var PUZZLE_SIZE = 4;
-// var loopNodes = [
-//     [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, 1], [6, 1], [6, 2],
-//     [7, 2], [7, 1], [7, 0], [8, 0], [8, 1], [8, 2], [8, 3], [7, 3], [6, 3],
-//     [6, 4], [5, 4], [5, 3], [4, 3], [4, 4], [4, 5], [5, 5], [6, 5], [6, 6],
-//     [5, 6], [4, 6], [4, 7], [5, 7], [6, 7], [7, 7], [7, 6], [8, 6], [8, 5],
-//     [7, 5], [7, 4], [8, 4], [9, 4], [9, 3], [9, 2], [9, 1], [9, 0], [10, 0],
-//     [10, 1], [10, 2], [10, 3], [10, 4], [10, 5], [9, 5], [9, 6], [10, 6],
-//     [10, 7], [9, 7], [8, 7], [8, 8], [7, 8], [6, 8], [6, 9], [7, 9], [8, 9],
-//     [9, 9], [10, 9], [10, 10], [9, 10], [8, 10], [7, 10], [6, 10], [5, 10],
-//     [5, 9], [4, 9], [4, 10], [3, 10], [2, 10], [2, 9], [3, 9], [3, 8], [2, 8],
-//     [1, 8], [1, 9], [1, 10], [0, 10], [0, 9], [0, 8], [0, 7], [1, 7], [2, 7],
-//     [3, 7], [3, 6], [3, 5], [2, 5], [1, 5], [1, 6], [0, 6], [0, 5], [0, 4],
-//     [1, 4], [2, 4], [3, 4], [3, 3], [2, 3], [2, 2], [3, 2], [4, 2], [4, 1],
-//     [3, 1], [2, 1], [1, 1], [1, 2], [1, 3], [0, 3], [0, 2], [0, 1]];
-var loopNodes = [[2, 0], [3, 0], [4, 0], [4, 1], [4, 2], [4, 3], [3, 3], [3, 2],
-[2, 2], [2, 3], [1, 3], [0, 3], [0, 2], [1, 2], [1, 1], [2, 1]];
+var PUZZLE_SIZE = 5;
 
 function square(x, y) {
   return [[x, y], [x + 1, y], [x + 1, y + 1], [x, y + 1]];
@@ -34,6 +18,9 @@ export function makePuzzleMesh() {
     }
   }
 
+  var loopNodes = makeLoop(mesh);
+  console.log('loop:', loopNodes);
+
   for (e of mesh.edges) {
     e.state = false;
   }
@@ -41,19 +28,49 @@ export function makePuzzleMesh() {
   for (var i = 0; i < loopNodes.length; i++) {
     v1 = loopNodes[i];
     v2 = loopNodes[(i + 1) % loopNodes.length];
-    e = mesh.getEdgeFrom(v1, v2);
+    console.log(i, v1, v2);
+    e = v1.getEdgeTo(v2);
     e.state = true;
   }
-
-  // for (f of mesh.faces) {
-  //   f.hint = f.edges.filter((f) => f.state).length;
-  // }
 
   for (e of mesh.edges) {
     e.state = 'none';
   }
 
   return mesh;
+}
+
+function makeLoop(mesh) {
+  // DFS search to try and make a loop.
+  // var goalLength = mesh.verts.length / 2;
+  var goalLength = 2;
+  var start = mesh.verts[Math.floor(Math.random() * mesh.verts.length)];
+  var seen = {};
+  var todo = [start];
+  var vert;
+  var loop = [];
+  var foundLoop = false;
+
+  while (todo.length > 0) {
+    vert = todo.pop();
+    console.log(vert);
+    if (loop.length > goalLength && vert.id === start.id) {
+      foundLoop = true;
+      break;
+    }
+    if (seen[vert.id]) {
+      continue;
+    }
+    seen[vert.id] = true;
+    todo = todo.concat(vert.connectedVerts());
+    loop.push(vert);
+  }
+
+  if (foundLoop) {
+    return loop;
+  } else {
+    return null;
+  }
 }
 
 export function oneSolutionStep(puzzle) {

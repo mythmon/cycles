@@ -1,0 +1,20 @@
+.vert {
+  fill: #248;
+  stroke: none;
+}
+
+.edge {
+  fill: none;
+}
+
+.face {
+  stroke: none;
+  fill: #ddd;
+}
+
+.face-num {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-weight: bold;
+  font-family: "Fira Sans", sans;
+}

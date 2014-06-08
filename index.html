@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+ <html>
+<head>
+  <meta charset="utf-8">
+  <title>Cycles</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <script type="text/javascript" src="node_modules/d3/d3.js"></script>
+  <script type="text/javascript" src="node_modules/traceur/bin/traceur.js"></script>
+  <script type="text/javascript" src="node_modules/traceur/bin/traceur-runtime.js"></script>
+  <script type="text/javascript" src="node_modules/es6-module-loader/dist/es6-module-loader.js"></script>
+  <script type="text/javascript" src="node_modules/systemjs/dist/system.js"></script>
+
+  <script>
+    System.import('./dist/app')
+    .then(function(module) {
+      console.log('I got a module', module);
+    })
+    .catch(function(err) {
+      console.error(err);
+      throw err;
+    });
+  </script>
+
+  <!-- <script type="text/javascript" src="dist/mesh.js"></script>
+  <script type="text/javascript" src="dist/app.js"></script> -->
+</body>
+</html>

@@ -42,11 +42,7 @@ svg {
   font-family: "Fira Sans", sans;
 }
 
-.debug .voronoi {
+.voronois {
   fill: none;
   pointer-events: all;
-  /*opacity: 0.25;*/
-}
-.debug .voronoi:hover {
-  /*opacity: 1;*/
 }

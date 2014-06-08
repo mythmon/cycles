@@ -12,6 +12,8 @@ function errors(err) {
 // Watch Files For Changes
 gulp.task('watch', ['build'], function() {
   gulp.watch('src/*.js', ['build']);
+  gulp.watch('index.html', ['build']);
+  gulp.watch('style.css', ['build']);
 });
 
 gulp.task('build', function () {

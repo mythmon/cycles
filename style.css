@@ -1,15 +1,38 @@
+body {
+  background: #DCDAD5;
+}
+
+svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .vert {
-  fill: #248;
+  fill: #000;
   stroke: none;
 }
 
 .edge {
   fill: none;
 }
+.edge[edge-state=true] {
+  stroke: #000;
+  stroke-width: 2.5px;
+}
+.edge[edge-state=false] {
+  stroke: #C6C4C0;
+  stroke-width: 1px;
+}
+.edge[edge-state=none] {
+  stroke: #C6C400;
+  stroke-width: 3px;
+}
 
 .face {
   stroke: none;
-  fill: #ddd;
+  fill: none;
 }
 
 .face-num {
@@ -17,4 +40,13 @@
   dominant-baseline: central;
   font-weight: bold;
   font-family: "Fira Sans", sans;
+}
+
+.debug .voronoi {
+  fill: none;
+  pointer-events: all;
+  /*opacity: 0.25;*/
+}
+.debug .voronoi:hover {
+  /*opacity: 1;*/
 }

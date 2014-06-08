@@ -157,4 +157,36 @@ export class Mesh {
     }
     return edge;
   }
+
+  voronoi() {
+    var points = [];
+    var x, y, center;
+    for (var f of this.faces) {
+      center = f.center();
+      center.type = 'face';
+      center.face = f;
+      points.push(center);
+    }
+    for (var e of this.edges) {
+      x = (e.vert1.x + e.vert2.x) / 2;
+      y = (e.vert1.y + e.vert2.y) / 2;
+      points.push({
+        x: x,
+        y: y,
+        type: 'edge',
+        edge: e,
+      });
+    }
+
+    var xExtent = d3.extent(points, (d) => d.x);
+    var yExtent = d3.extent(points, (d) => d.y);
+
+    var voro = d3.geom.voronoi()
+      .x((d) => d.x)
+      .y((d) => d.y)
+      .clipExtent([[xExtent[0] - 1, yExtent[0] - 1],
+                   [xExtent[1] + 1, yExtent[1] + 1]]);
+
+    return voro(points);
+  }
 }

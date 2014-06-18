@@ -1,155 +1,217 @@
-import {Mesh} from "./mesh";
+import {Mesh} from './mesh';
+import {shuffle, randInt, randItem, randItemWeighted} from './utils';
+import {isSolvable} from './solver';
 
-var PUZZLE_SIZE = 4;
-// var loopNodes = [
-//     [0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [5, 1], [6, 1], [6, 2],
-//     [7, 2], [7, 1], [7, 0], [8, 0], [8, 1], [8, 2], [8, 3], [7, 3], [6, 3],
-//     [6, 4], [5, 4], [5, 3], [4, 3], [4, 4], [4, 5], [5, 5], [6, 5], [6, 6],
-//     [5, 6], [4, 6], [4, 7], [5, 7], [6, 7], [7, 7], [7, 6], [8, 6], [8, 5],
-//     [7, 5], [7, 4], [8, 4], [9, 4], [9, 3], [9, 2], [9, 1], [9, 0], [10, 0],
-//     [10, 1], [10, 2], [10, 3], [10, 4], [10, 5], [9, 5], [9, 6], [10, 6],
-//     [10, 7], [9, 7], [8, 7], [8, 8], [7, 8], [6, 8], [6, 9], [7, 9], [8, 9],
-//     [9, 9], [10, 9], [10, 10], [9, 10], [8, 10], [7, 10], [6, 10], [5, 10],
-//     [5, 9], [4, 9], [4, 10], [3, 10], [2, 10], [2, 9], [3, 9], [3, 8], [2, 8],
-//     [1, 8], [1, 9], [1, 10], [0, 10], [0, 9], [0, 8], [0, 7], [1, 7], [2, 7],
-//     [3, 7], [3, 6], [3, 5], [2, 5], [1, 5], [1, 6], [0, 6], [0, 5], [0, 4],
-//     [1, 4], [2, 4], [3, 4], [3, 3], [2, 3], [2, 2], [3, 2], [4, 2], [4, 1],
-//     [3, 1], [2, 1], [1, 1], [1, 2], [1, 3], [0, 3], [0, 2], [0, 1]];
-var loopNodes = [[2, 0], [3, 0], [4, 0], [4, 1], [4, 2], [4, 3], [3, 3], [3, 2],
-[2, 2], [2, 3], [1, 3], [0, 3], [0, 2], [1, 2], [1, 1], [2, 1]];
+var PUZZLE_SIZE = 8;
 
 function square(x, y) {
   return [[x, y], [x + 1, y], [x + 1, y + 1], [x, y + 1]];
 }
 
-export function makePuzzleMesh() {
-  var mesh = new Mesh();
-  var e, v1, v2;
+export class Puzzle extends Mesh {
+  constructor() {
+    super();
+    var startMakingPuzzle = +new Date();
+    var x, y, i , f, e, v1, v2;
 
-  var hints = [0, 2, null, null, null, null, null, 1, 3, null, null, 3, null, null, 0, null];
-  for (var x = 0; x < PUZZLE_SIZE; x++) {
-    for (var y = 0; y < PUZZLE_SIZE; y++) {
-      var f = mesh.addFace(...square(x, y));
-      f.hint = hints[y * 4 + x];
-    }
-  }
-
-  for (e of mesh.edges) {
-    e.state = false;
-  }
-
-  for (var i = 0; i < loopNodes.length; i++) {
-    v1 = loopNodes[i];
-    v2 = loopNodes[(i + 1) % loopNodes.length];
-    e = mesh.getEdgeFrom(v1, v2);
-    e.state = true;
-  }
-
-  // for (f of mesh.faces) {
-  //   f.hint = f.edges.filter((f) => f.state).length;
-  // }
-
-  for (e of mesh.edges) {
-    e.state = 'none';
-  }
-
-  return mesh;
-}
-
-export function oneSolutionStep(puzzle) {
-  for (var i = 0; i < solvingMethods.length; i++) {
-    var ret = solvingMethods[i](puzzle);
-    if (ret) {
-      console.log('Stepped using strategy: ', solvingMethods[i].name);
-      return true;
-    }
-  }
-  return false;
-}
-
-/* Ever solving method in this should find one piece of evidence, make changes
-* to the puzzle based on only that piece of evidence, and then return true.
-* If no evidence it found, and thus no changes made, it should return false.
-*/
-var solvingMethods = [singleVertPatterns, fillNums, emptyNums, facesInCorners];
-
-function _getUnsetEdge(d) {
-  var unsetEdges = d.edges.filter((e) => e.state === 'none');
-  if (unsetEdges.length === 0) {
-    console.error('ineligible object to setOn:', d);
-    throw new Error('Logic error, tried to set/clear on ineligible object.');
-  }
-  return unsetEdges[0];
-}
-function _setOneEdge(d) {
-  _getUnsetEdge(d).state = true;
-  return true;
-}
-function _clearOneEdge(d) {
-  _getUnsetEdge(d).state = false;
-  return true;
-}
-function _componentCounts(d) {
-  var a = d.edges.length;
-  var t = d.edges.filter((e) => e.state === true).length;
-  var f = d.edges.filter((e) => e.state === false).length;
-  var n = d.edges.filter((e) => e.state === 'none').length;
-  return {a, t, f, n};
-}
-
-function singleVertPatterns(puzzle) {
-  for (var v of puzzle.verts) {
-    var {a, t, f, n} = _componentCounts(v);
-    if (t + f + n !== a) {
-      throw new Error('Algorithm error, n+t+f != a');
+    for (x = 0; x < PUZZLE_SIZE; x++) {
+      for (y = 0; y < PUZZLE_SIZE; y++) {
+        this.addFace(...square(x, y));
+      }
     }
 
-    if (f === a - 1 && n > 0) {
-      return _clearOneEdge(v);
+    // setup
+    for (e of this.edges) {
+      e.state = 'none';
     }
-    if (n === 1 && t === 1) {
-      return _setOneEdge(v);
+    for (f of this.faces) {
+      f.color = 'grey';
     }
-    if (t === 2 && n > 0) {
-      return _clearOneEdge(v);
-    }
-  }
-  return false;
-}
+    this.colorFaces();
 
-function fillNums(puzzle) {
-  for (var face of puzzle.faces.filter((f) => f.hint !== null)) {
-    var {a, t, f, n} = _componentCounts(face);
-    if (t > face.hint) {
-      throw new Error("Logic error, face with too many edges set.");
+    // add hints
+    for (e of this.edges) {
+      e.state = e.aFace.color !== (e.bFace || {color: 'black'}).color;
     }
-    if (f === a - face.hint && n > 0) {
-      return _setOneEdge(face);
+    for (f of this.faces) {
+      f.color = 'grey';
+      f.hint = f.edges.filter((e) => e.state === true).length;
     }
-  }
-}
+    for (e of this.edges) {
+      e.state = 'none';
+    }
 
-function emptyNums(puzzle) {
-  for (var face of puzzle.faces.filter((f) => f.hint !== null)) {
-    var {a, t, f, n} = _componentCounts(face);
-    if (t === face.hint && n > 0) {
-      return _clearOneEdge(face);
-    }
-  }
-}
+    this.removeHints();
 
-function facesInCorners(puzzle) {
-  for (var face of puzzle.faces.filter((f) => f.hint !== null)) {
-    var faceCounts = _componentCounts(face);
-    // will marking two "n" edges as "f" make this face invalid?
-    if (faceCounts.a - faceCounts.t - faceCounts.n < face.hint) {
-      // Do any verts on this face have 2 "n" edges and no "t" edges.
-      for (var vert of face.verts()) {
-        var vertCounts = _componentCounts(vert);
-        if (vertCounts.t === 0 && vertCounts.n === 2) {
-          return _setOneEdge(vert);
+    var doneMakingPuzzle = new Date();
+    console.log('Made puzzle in', doneMakingPuzzle - startMakingPuzzle, 'ms');
+  }
+
+  canColor(face, color) {
+    if (face.color !== 'grey') {
+      return false;
+    }
+    for (var n of face.neighbors()) {
+      if (n === undefined) {
+        n = {color: 'black'};
+      }
+      if (n.color === color) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  colorFaces() {
+    var color;
+    var todo = this.faces.length - 1;
+    var f;
+    var choices, choice;
+
+    randItem(this.faces).color = 'white';
+
+    while (todo > 0) {
+    // var interval = setInterval(function() {
+      color = randItem(['white', 'black']);
+      if (todo <= 0) {
+        clearInterval(interval);
+        return;
+      }
+      choices = [];
+      for (f of this.faces.filter((f) => f.color === 'grey')) {
+        if (this.canColor(f, color)) {
+          choices.push({
+            color: color,
+            face: f,
+            score: this.faceScore(f, color) + Math.random() - 0.5,
+          });
         }
       }
+
+      shuffle(choices);
+      choices.sort((b, a) => a.score - b.score);
+      while (choices.length > 0) {
+        choice = choices.pop();
+        choice.face.color = choice.color;
+        if (this.gridHasHoles()) {
+          choice.face.color = 'grey';
+        } else {
+          todo--;
+          break;
+        }
+      }
+    // }.bind(this), 0);
+    }
+  }
+
+  transitionsAroundCount(face, color) {
+    var neighbors = face.neighborsCorners();
+    var edgeCounts = {};
+    var edgeMap = {};
+    var potentials = [];
+    var fromNull = 0;
+
+    for (var n of neighbors) {
+      if (n) {
+        for (var e of n.edges) {
+          if (e.id) {
+            edgeCounts[e.id] = (edgeCounts[e.id] || 0) + 1;
+            edgeMap[e.id] = e;
+          }
+        }
+      } else {
+        if (color === 'black') {
+          fromNull = 2;
+        }
+      }
+    }
+
+    for (var edgeId in edgeCounts) {
+      var count = edgeCounts[edgeId];
+      if (count === 2) {
+        potentials.push(edgeMap[edgeId]);
+      }
+    }
+
+    return potentials.filter(function(e) {
+      var aFace = e.aFace || {color: 'black'};
+      var bFace = e.bFace || {color: 'black'};
+      return aFace.color !== bFace.color;
+      // return ((aFace.color === 'grey' && bFace.color === color) ||
+              // (aFace.color === color && bFace.color === 'grey'));
+    }).length;
+  }
+
+  faceScore(face, color) {
+    var cost = 1;
+    var neighbors = face.neighborsCorners();
+    // var score = Math.pow(neighbors.length);
+    var score = neighbors.length + 1;
+    for (var n of neighbors) {
+      if (n && n.color !== color) {
+        score -= cost;
+        // cost *= 2;
+      }
+    }
+    return score;
+  }
+
+  gridHasHoles() {
+    var hasPathToNull = function(start) {
+      var todo = [start];
+      var seen = {};
+      while (todo.length) {
+        var f = todo.pop();
+        if (seen[f.id]) {
+          continue;
+        }
+        seen[f.id] = true;
+        for (var n of f.neighbors()) {
+          if (!n) {
+            return true;
+          }
+          if (n.color === 'grey' && !seen[n.id]) {
+            todo.push(n);
+          }
+        }
+      }
+      return false;
+    };
+
+    for (var f of this.faces.filter((f) => f.color === 'grey')) {
+      if (!hasPathToNull(f)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  resetEdges() {
+    console.log('clearing');
+    for (var e of this.edges) {
+      e.state = 'none';
+    }
+  }
+
+  removeHints() {
+    var theHintWas;
+    var faces = shuffle(this.faces);
+    this.resetEdges();
+
+    if (!isSolvable(this)) {
+      this.resetEdges();
+      alert('I screwed up. Please refresh.')
+      throw 'Puzzle not solvable with all hints.';
+    }
+    this.resetEdges();
+
+    for (var f of faces) {
+      theHintWas = f.hint;
+      f.hint = null;
+      if (!isSolvable(this)) {
+        f.hint = theHintWas;
+      }
+      this.resetEdges();
     }
   }
 }

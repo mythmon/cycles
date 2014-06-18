@@ -1,9 +1,4 @@
-var getId = (function() {
-  var _nextId = 0;
-  return function getId() {
-    return _nextId++;
-  };
-})();
+import {getId} from './utils';
 
 export class Vert {
   constructor(x, y, edges) {
@@ -11,6 +6,30 @@ export class Vert {
     this.y = y;
     this.edges = edges;
     this.id = getId();
+  }
+
+  // All vertices that are distance 1 from this vertex.
+  connectedVerts() {
+    var vs = [];
+    for (var e of this.edges) {
+      vs.push(e.vert1);
+      vs.push(e.vert2);
+    }
+    return vs.filter((v) => v.id !== this.id);
+  }
+
+  getEdgeTo(vert) {
+    for (var e of this.edges) {
+      if (e.vert1 === this && e.vert2 === vert ||
+          e.vert1 === vert && e.vert2 === this) {
+        return e;
+      }
+    }
+    throw new Error(`Unknown connection from ${this.toString()} to ${vert.toString()}`);
+  }
+
+  toString() {
+    return `[${this.x},${this.y}]`;
   }
 }
 
@@ -64,6 +83,50 @@ export class Face {
       totalY += v.y;
     }
     return this._center = {x: totalX / verts.length, y: totalY / verts.length};
+  }
+
+  neighbors() {
+    if (this._neighbors) {
+      return this._neighbors;
+    }
+    var ns = [];
+    for (var e of this.edges) {
+      if (e.aFace === this) {
+        ns.push(e.bFace);
+      } else {
+        ns.push(e.aFace);
+      }
+    }
+    this._neighbors = ns;
+    return ns;
+  }
+
+  neighborsCorners() {
+    if (this._neighborsCorners) {
+      return this._neighborsCorners;
+    }
+    var ns = [];
+    var faceMap = {};
+    faceMap[this.id] = true;
+
+    for (var v of this.verts()) {
+      for (var e of v.edges) {
+        if (!faceMap[e.aFace.id]) {
+          faceMap[e.aFace.id] = true;
+          ns.push(e.aFace);
+        }
+        if (e.bFace && !faceMap[e.bFace.id]) {
+          faceMap[e.bFace.id] = true;
+          ns.push(e.bFace);
+        }
+        if (e.bFace === undefined && !faceMap[undefined]) {
+          faceMap[undefined] = true;
+          ns.push(undefined);
+        }
+      }
+    }
+
+    return ns;
   }
 }
 

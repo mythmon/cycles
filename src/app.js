@@ -1,6 +1,8 @@
-import {makePuzzleMesh, oneSolutionStep} from "./cycles";
+import {Puzzle, oneSolutionStep} from "./cycles";
+import {randItem} from './utils';
 
-var puzzleMesh = makePuzzleMesh();
+var puzzleMesh = new Puzzle();
+console.log(puzzleMesh);
 
 var svg = d3.select('body').append('svg');
 
@@ -63,7 +65,9 @@ function update() {
     voronoi.enter().append('path').classed('voronoi', true);
 
     // Update
-    faces.attr('d', (f) => lineClosed(f.verts()));
+    faces
+      .attr('d', (f) => lineClosed(f.verts()))
+      .style('fill', (f) => f.color);
     faceNums
       .attr('x', (f) => xscale(f.center().x))
       .attr('y', (f) => yscale(f.center().y))
@@ -71,7 +75,7 @@ function update() {
       .style('font-size', (f) => yscaleZero(0.6) + 'px');
     edges
       .attr('d', (e) => lineOpen(e.verts()))
-      .attr('edge-state', (e) => e.state)
+      .attr('edge-state', (e) => e.state);
     verts
       .attr('cx', (v) => xscale(v.x))
       .attr('cy', (v) => yscale(v.y))
@@ -102,13 +106,30 @@ function voronoiOnClick(d) {
 function nextSolutionStep() {
   var madeChange = oneSolutionStep(puzzleMesh);
   update();
-  if (!madeChange) {
-    alert("I can't solve anything more.")
-    // clearInterval(solvingInterval);
+  return madeChange;
+}
+
+var stop = false;
+function solveAll() {
+  var madeChange = nextSolutionStep();
+  console.log(stop, done, !stop && done);
+  if (!stop && madeChange) {
+    requestAnimationFrame(solveAll);
   }
 }
 
-d3.select('body').append('button').text('Step Solve').on('click', nextSolutionStep);
+function stopSolving() {
+  stop = true;
+}
 
-update();
+function animate() {
+  update();
+  requestAnimationFrame(animate);
+}
+
+// d3.select('body').append('button').text('Solve Step').on('click', nextSolutionStep);
+// d3.select('body').append('button').text('Solve All').on('click', solveAll);
+// d3.select('body').append('button').text('Stop').on('click', stopSolving);
+
+animate();
 // var solvingInterval = setInterval(nextSolutionStep, 1000);

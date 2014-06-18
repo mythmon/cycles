@@ -1,9 +1,4 @@
-var getId = (function() {
-  var _nextId = 0;
-  return function getId() {
-    return _nextId++;
-  };
-})();
+import {getId} from './utils';
 
 export class Vert {
   constructor(x, y, edges) {
@@ -20,8 +15,21 @@ export class Vert {
       vs.push(e.vert1);
       vs.push(e.vert2);
     }
-    console.log(vs);
     return vs.filter((v) => v.id !== this.id);
+  }
+
+  getEdgeTo(vert) {
+    for (var e of this.edges) {
+      if (e.vert1 === this && e.vert2 === vert ||
+          e.vert1 === vert && e.vert2 === this) {
+        return e;
+      }
+    }
+    throw new Error(`Unknown connection from ${this.toString()} to ${vert.toString()}`);
+  }
+
+  toString() {
+    return `[${this.x},${this.y}]`;
   }
 }
 
@@ -75,6 +83,22 @@ export class Face {
       totalY += v.y;
     }
     return this._center = {x: totalX / verts.length, y: totalY / verts.length};
+  }
+
+  neighbors() {
+    if (this._neighbors) {
+      return this._neighbors;
+    }
+    var ns = [];
+    for (var e of this.edges) {
+      if (e.aFace === this) {
+        ns.push(e.bFace);
+      } else {
+        ns.push(e.aFace);
+      }
+    }
+    this._neighbors = ns;
+    return ns;
   }
 }
 

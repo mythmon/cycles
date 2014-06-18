@@ -1,5 +1,6 @@
 body {
-  background: #DCDAD5;
+  /*background: #DCDAD5;*/
+  background: #000;
 }
 
 svg {
@@ -10,7 +11,7 @@ svg {
 }
 
 .vert {
-  fill: #000;
+  fill: #fff;
   stroke: none;
 }
 
@@ -18,7 +19,7 @@ svg {
   fill: none;
 }
 .edge[edge-state=true] {
-  stroke: #000;
+  stroke: #fff;
   stroke-width: 2.5px;
 }
 .edge[edge-state=false] {

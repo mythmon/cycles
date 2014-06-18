@@ -53,11 +53,20 @@ function _clearOneEdge(d) {
   return true;
 }
 function _componentCounts(d) {
-  var a = 0, t = 0, f = 0, n = 0;
   var a = d.edges.length;
-  var t = d.edges.filter((e) => e.state === true).length;
-  var f = d.edges.filter((e) => e.state === false).length;
-  var n = d.edges.filter((e) => e.state === 'none').length;
+  var t = 0, f = 0, n = 0;
+  for (var e of d.edges) {
+    if (e.state === true) {
+      t++;
+    } else if (e.state === false) {
+      f++;
+    } else if (e.state === 'none') {
+      n++;
+    }
+  }
+  // var t = d.edges.filter((e) => e.state === true).length;
+  // var f = d.edges.filter((e) => e.state === false).length;
+  // var n = d.edges.filter((e) => e.state === 'none').length;
   return {a, t, f, n};
 }
 

@@ -1,4 +1,5 @@
-import {Puzzle, oneSolutionStep} from "./cycles";
+import {Puzzle} from './cycles';
+import {oneSolutionStep} from './solver';
 import {randItem} from './utils';
 
 var puzzleMesh = new Puzzle();
@@ -66,8 +67,7 @@ function update() {
 
     // Update
     faces
-      .attr('d', (f) => lineClosed(f.verts()))
-      .style('fill', (f) => f.color);
+      .attr('d', (f) => lineClosed(f.verts()));
     faceNums
       .attr('x', (f) => xscale(f.center().x))
       .attr('y', (f) => yscale(f.center().y))
@@ -112,7 +112,6 @@ function nextSolutionStep() {
 var stop = false;
 function solveAll() {
   var madeChange = nextSolutionStep();
-  console.log(stop, done, !stop && done);
   if (!stop && madeChange) {
     requestAnimationFrame(solveAll);
   }
@@ -122,14 +121,25 @@ function stopSolving() {
   stop = true;
 }
 
+function clear() {
+  for (var e of puzzleMesh.edges) {
+    e.state = 'none';
+  }
+}
+
+function removeHints() {
+  puzzleMesh.removeHints();
+}
+
 function animate() {
   update();
   requestAnimationFrame(animate);
 }
 
-// d3.select('body').append('button').text('Solve Step').on('click', nextSolutionStep);
-// d3.select('body').append('button').text('Solve All').on('click', solveAll);
-// d3.select('body').append('button').text('Stop').on('click', stopSolving);
+d3.select('body').append('button').text('Solve Step').on('click', nextSolutionStep);
+d3.select('body').append('button').text('Solve All').on('click', solveAll);
+d3.select('body').append('button').text('Stop').on('click', stopSolving);
+d3.select('body').append('button').text('Clear').on('click', clear);
 
 animate();
 // var solvingInterval = setInterval(nextSolutionStep, 1000);

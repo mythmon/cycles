@@ -7,14 +7,14 @@ var browserify = require('gulp-browserify');
 var rm = require('gulp-rm');
 
 function errors(err) {
-  this.end();
   console.error(err.toString());
+  this.end();
 }
 
 gulp.task('default', ['build']);
 
 gulp.task('watch', function() {
-  gulp.watch('src/*.js', ['build']);
+  gulp.watch(['src/*.js', 'index.html', 'style.css'], ['build']);
 });
 
 gulp.task('build', [
@@ -37,7 +37,7 @@ gulp.task('build.vendor', function() {
 
 gulp.task('build.traceur', function() {
   return gulp.src('src/**/*.js')
-    .pipe(traceur({modules: 'commonjs'})).on('error', errors)
+    .pipe(traceur({modules: 'commonjs'}))
     .pipe(gulp.dest('build/src'));
 });
 

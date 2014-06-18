@@ -100,6 +100,34 @@ export class Face {
     this._neighbors = ns;
     return ns;
   }
+
+  neighborsCorners() {
+    if (this._neighborsCorners) {
+      return this._neighborsCorners;
+    }
+    var ns = [];
+    var faceMap = {};
+    faceMap[this.id] = true;
+
+    for (var v of this.verts()) {
+      for (var e of v.edges) {
+        if (!faceMap[e.aFace.id]) {
+          faceMap[e.aFace.id] = true;
+          ns.push(e.aFace);
+        }
+        if (e.bFace && !faceMap[e.bFace.id]) {
+          faceMap[e.bFace.id] = true;
+          ns.push(e.bFace);
+        }
+        if (e.bFace === undefined && !faceMap[undefined]) {
+          faceMap[undefined] = true;
+          ns.push(undefined);
+        }
+      }
+    }
+
+    return ns;
+  }
 }
 
 function vertKey([x, y]) {
